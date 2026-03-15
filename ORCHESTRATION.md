@@ -84,7 +84,177 @@ class GraphState(TypedDict):
 - `merge_dicts` - Updates context dict (old + new)
 - `operator.add` - Concatenates tool call log entries
 
-### 3. Agent Decision Tree
+### 3. Memory Management System
+
+PawBook uses a **three-tier memory architecture** to maintain context across conversation turns:
+
+#### **Tier 1: Message History** (Full Conversation)
+- Stored in `messages: list[BaseMessage]`
+- Contains all user inputs and AI responses
+- LangChain's `add_messages` reducer deduplicates and orders messages
+- **Scope**: Entire conversation within a session
+- **Used for**: Agent has full context of what happened previously
+
+Example:
+```
+messages = [
+  HumanMessage("Check availability for a dog tomorrow morning"),
+  AIMessage("I found 3 available slots..."),
+  HumanMessage("Book Max for 10:30 AM with Sarah Chen"),
+  AIMessage("Booking confirmed! ID: PB-4E81F6BC")
+]
+```
+
+#### **Tier 2: Session Context** (Extracted Information)
+- Stored in `sessionContext: dict`
+- Custom `merge_dicts` reducer: new values override old ones
+- Contains extracted facts from conversation
+- **Scope**: User-specific data that persists across turns
+- **Used for**: Agent avoids asking the same question twice
+
+**Automatically extracted fields:**
+| Field | Extracted from | Example |
+|-------|---|---|
+| `petType` | User text (dog/cat/rabbit) | "dog" |
+| `petName` | Booking details | "Max" |
+| `lastBookingId` | Booking responses (regex: `PB-[A-F0-9]{8}`) | "PB-4E81F6BC" |
+| `lastSlots` | Availability results | `[{slotId: "...", time: "9:00 AM"}]` |
+
+**Example evolution across turns:**
+```
+Turn 1: User asks about availability for a dog
+  sessionContext = {petType: "dog"}
+
+Turn 2: User books Max
+  sessionContext = {petType: "dog", petName: "Max", lastBookingId: "PB-4E81F6BC"}
+
+Turn 3: User asks for booking details
+  → Agent uses lastBookingId from context (no need to ask!)
+  sessionContext = {petType: "dog", petName: "Max", lastBookingId: "PB-4E81F6BC"}
+```
+
+#### **Tier 3: Tool Call Log** (Audit Trail)
+- Stored in `toolCallLog: list`
+- Records every tool execution with metadata
+- `operator.add` reducer concatenates entries
+- **Scope**: Current conversation session
+- **Used for**: Debugging, analytics, transparency
+
+**Each entry contains:**
+```json
+{
+  "tool": "check_availability",
+  "timestamp": 1773565600.123,
+  "args": {"date": "tomorrow", "timePreference": "morning", "petType": "dog"},
+  "result": {"slots": [...], "totalFound": 4},
+  "server": "availability",
+  "elapsed": "2506ms"
+}
+```
+
+#### **Memory Flow in Graph Execution**
+
+```
+REQUEST WITH STATE:
+{
+  messages: [HumanMessage("Book Max..."), ...],
+  sessionContext: {petType: "dog"},
+  toolCallLog: [...]
+}
+    ↓
+agent_node():
+  1. Reads all three state tiers
+  2. Extracts new context from user message
+  3. Calls LLM with full message history
+  4. Returns response with updated sessionContext
+    ↓
+should_continue():
+  1. Checks if response has tool calls
+  2. Routes to ToolNode or END
+    ↓
+(if tools needed) ToolNode:
+  1. Executes tools
+  2. Appends ToolMessage to messages
+  3. Appends to toolCallLog
+  4. Returns to agent_node (loop)
+    ↓
+RESPONSE WITH UPDATED STATE:
+{
+  message: "Your booking is confirmed! ID: PB-4E81F6BC",
+  toolResults: {...},
+  contextUpdates: {petType: "dog", petName: "Max", lastBookingId: "PB-4E81F6BC"},
+  toolCallLog: [...with new entry...]
+}
+```
+
+#### **Context Extraction Rules**
+
+**Automatic extraction in agent_node():**
+```python
+# Extract pet type
+if "dog" in user_message.lower() and "petType" not in context:
+    context["petType"] = "dog"
+
+# Extract booking IDs from LLM response
+booking_ids = re.findall(r'PB-[A-F0-9]{8}', response.content)
+if booking_ids:
+    context["lastBookingId"] = booking_ids[0]
+```
+
+**Manual extraction during tool calls:**
+- Tool results are parsed and stored for reference
+- Booking details contain all customer info
+- Slot details contain groomer names, ratings, times
+
+#### **Memory Lifecycle**
+
+1. **Creation**: New conversation → empty state
+2. **Growth**: Each turn adds messages and extracts context
+3. **Reuse**: Agent references previous context to avoid repetition
+4. **Persistence**: Sent to frontend, persists until session ends
+5. **End**: Session cleared when user starts new chat
+
+#### **Frontend ↔ Backend Sync**
+
+```javascript
+// Frontend maintains state
+const [sessionContext, setSessionContext] = useState({});
+
+// Send request with current state
+POST /api/chat {
+  messages: chatHistory,
+  sessionContext: sessionContext
+}
+
+// Backend returns updated state
+Response {
+  message: "...",
+  toolResults: {...},
+  contextUpdates: {lastBookingId: "PB-XXXXX"}  // ← New context
+}
+
+// Frontend updates local state
+setSessionContext(prev => ({...prev, ...response.contextUpdates}));
+```
+
+#### **Multi-Process Isolation Note** ⚠️
+
+Each MCP server (availability, pricing, booking, notification) runs in a **separate Python process** with its own in-memory state:
+
+```
+Process 3101: store.BOOKINGS = []  ← Availability server's copy
+Process 3102: store.BOOKINGS = []  ← Pricing server's copy
+Process 3103: store.BOOKINGS = [✓] ← Booking server's copy
+Process 3104: store.BOOKINGS = []  ← Notification server's copy
+```
+
+**Why this matters**: When booking server creates a booking, notification server can't find it in its local state.
+
+**Dev mode solution**: Notification/booking servers create mock objects when data not found locally.
+
+**Production solution**: Replace in-memory state with shared database (PostgreSQL, MongoDB, etc.)
+
+### 4. Agent Decision Tree
 
 When LLM receives a user query, it decides which tools to call:
 
@@ -118,26 +288,20 @@ Does mention NOTIFICATION/REMINDER?
 Respond conversationally without tools
 ```
 
-### 4. Session Context Tracking
+### 5. Context Usage Across Tool Calls
 
-Agent maintains state across conversation turns:
+Different tools contribute to memory updates:
 
-```
-Turn 1: "Check availability for a dog tomorrow"
-  Context: {petType: "dog"}
+| Tool | Context Extracted | Example |
+|------|------------------|---------|
+| `check_availability` | `petType`, `lastSlots` | petType: "dog", lastSlots: [{slotId: "...", groomer: "Sarah"}, ...] |
+| `get_pricing` | `lastPrice`, `selectedAddOns` | lastPrice: 82, selectedAddOns: ["nail_trim", "teeth_brushing"] |
+| `create_booking` | `petName`, `lastBookingId` | petName: "Max", lastBookingId: "PB-4E81F6BC" |
+| `get_booking` | (read-only) | Uses lastBookingId from context |
+| `cancel_booking` | (read-only) | Uses lastBookingId from context |
+| `send_notification` | `lastNotifId` | lastNotifId: "NOTIF-7DD95B" |
 
-Turn 2: "Book Max for 10:30 AM"
-  Context: {petType: "dog", petName: "Max"}
-
-Turn 3: "Send confirmation"
-  Context: {petType: "dog", petName: "Max", lastBookingId: "PB-ABC123"}
-```
-
-**Context Updates:**
-- `check_availability()` → extract `petType`
-- `get_pricing()` → extract `petSize`, `service`, `selectedAddOns`
-- `create_booking()` → extract `petName`, `lastBookingId`
-- Persist across conversation turns
+**Key Insight**: Once extracted, context is reused automatically. If you ask "Get my booking details" after booking, the agent uses the stored `lastBookingId` without asking you again.
 
 ## Example Conversation Flows
 
