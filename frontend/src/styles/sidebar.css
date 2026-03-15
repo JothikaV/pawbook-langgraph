@@ -1,0 +1,71 @@
+.lp {
+  width: 290px;
+  flex-shrink: 0;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lp-head {
+  padding: 18px 16px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #c8722a 0%, #a85d1f 100%);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(200, 114, 42, 0.3);
+  border: 2px solid #8b4a13;
+}
+
+.logo-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 19px;
+  color: var(--cream);
+}
+
+.logo-sub {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mono);
+  opacity: 0.6;
+  margin-top: 1px;
+}
+
+.lp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.lp-body::-webkit-scrollbar {
+  width: 3px;
+}
+
+.lp-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sec {
+  padding: 0 14px 14px;
+}
+
+.sec-lbl {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.22);
+  font-weight: 600;
+  padding: 0 2px 8px;
+}

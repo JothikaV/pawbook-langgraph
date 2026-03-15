@@ -1,0 +1,23 @@
+{
+  "name": "pawbook-langgraph-mcp",
+  "version": "1.0.0",
+  "description": "PawBook — LangGraph + LangChain + MCP + Gemini Free",
+  "scripts": {
+    "start": "concurrently --names \"AVAIL,PRICE,BOOK,NOTIF,AGENT\" --prefix-colors \"cyan,yellow,green,magenta,blueBright\" \"node mcp-servers/availability-server.js\" \"node mcp-servers/pricing-server.js\" \"node mcp-servers/booking-server.js\" \"node mcp-servers/notification-server.js\" \"node agent/agent-server.js\"",
+    "servers": "concurrently --names \"AVAIL,PRICE,BOOK,NOTIF\" --prefix-colors \"cyan,yellow,green,magenta\" \"node mcp-servers/availability-server.js\" \"node mcp-servers/pricing-server.js\" \"node mcp-servers/booking-server.js\" \"node mcp-servers/notification-server.js\"",
+    "agent": "node agent/agent-server.js"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "@langchain/google-genai": "^0.1.0",
+    "@langchain/langgraph": "^0.2.0",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "langchain": "^0.3.0",
+    "uuid": "^9.0.0",
+    "zod": "^3.23.0"
+  }
+}

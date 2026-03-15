@@ -1,0 +1,214 @@
+.mg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mg.user {
+  align-items: flex-end;
+}
+
+.mg.assistant {
+  align-items: flex-start;
+}
+
+.av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.mg.assistant .av {
+  background: linear-gradient(135deg, #c8722a 0%, #a85d1f 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(200, 114, 42, 0.35);
+  border: 2px solid #8b4a13;
+}
+
+.mg.user .av {
+  background: var(--amber);
+  color: white;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.bub {
+  max-width: 66%;
+  padding: 11px 15px;
+  border-radius: var(--r);
+  line-height: 1.65;
+  font-size: 13px;
+}
+
+.mg.assistant .bub {
+  background: var(--parchment);
+  border: 1px solid var(--parchment-d);
+  border-bottom-left-radius: 4px;
+  color: var(--bark);
+}
+
+.mg.user .bub {
+  background: var(--amber);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.bub p {
+  margin-bottom: 5px;
+}
+
+.bub p:last-child {
+  margin-bottom: 0;
+}
+
+.bub ul,
+.bub ol {
+  padding-left: 16px;
+  margin: 4px 0;
+}
+
+.bub li {
+  margin-bottom: 2px;
+}
+
+.tool-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 7px;
+}
+
+.tt {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.tt.lgt {
+  background: rgba(152, 120, 216, 0.15);
+  color: var(--violet-d);
+  border: 1px solid rgba(152, 120, 216, 0.3);
+}
+
+.tt.mcpt {
+  background: rgba(74, 184, 200, 0.15);
+  color: var(--cyan-d);
+  border: 1px solid rgba(74, 184, 200, 0.3);
+}
+
+.ni-tool {
+  color: var(--mono);
+}
+
+.badges {
+  display: flex;
+  gap: 5px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.badge.lg {
+  background: rgba(152, 120, 216, 0.1);
+  border: 1px solid rgba(152, 120, 216, 0.3);
+  color: var(--violet-d);
+}
+
+.badge.mcp {
+  background: rgba(74, 184, 200, 0.1);
+  border: 1px solid rgba(74, 184, 200, 0.3);
+  color: var(--cyan-d);
+}
+
+.b-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  animation: glow 2s infinite;
+}
+
+.badge.lg .b-dot {
+  background: var(--violet);
+}
+
+.badge.mcp .b-dot {
+  background: var(--cyan);
+}
+
+.input-wrapper {
+  padding: 12px 20px 20px;
+  border-top: 1px solid var(--parchment);
+  flex-shrink: 0;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+textarea {
+  flex: 1;
+  border: 1px solid var(--parchment-d);
+  border-radius: var(--rs);
+  padding: 10px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  resize: none;
+  max-height: 100px;
+  line-height: 1.4;
+  color: var(--bark);
+}
+
+textarea::placeholder {
+  color: var(--bark-light);
+  opacity: 0.4;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: 0 0 0 2px rgba(200, 114, 42, 0.1);
+}
+
+.send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--amber);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.send-btn:hover {
+  background: var(--amber-l);
+}
+
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

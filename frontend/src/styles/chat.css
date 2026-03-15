@@ -1,0 +1,121 @@
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--warm-white);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.chat-head {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--parchment);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.ch-t {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--bark);
+}
+
+.ch-s {
+  font-size: 11px;
+  color: var(--bark-light);
+  opacity: 0.5;
+  margin-top: 2px;
+}
+
+.msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.msgs::-webkit-scrollbar {
+  width: 3px;
+}
+
+.msgs::-webkit-scrollbar-thumb {
+  background: var(--parchment-d);
+  border-radius: 2px;
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  text-align: center;
+  padding: 24px;
+}
+
+.w-icon {
+  font-size: 60px;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #c8722a 0%, #a85d1f 100%);
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(200, 114, 42, 0.3);
+  border: 3px solid #8b4a13;
+}
+
+.w-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: var(--bark);
+}
+
+.w-sub {
+  font-size: 13px;
+  color: var(--bark-light);
+  opacity: 0.6;
+  max-width: 360px;
+  line-height: 1.6;
+}
+
+.w-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  max-width: 460px;
+}
+
+.wc {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.wc:hover {
+  background: rgba(74, 184, 200, 0.1);
+  border-color: rgba(74, 184, 200, 0.3);
+  color: var(--cyan);
+}
+
+.wc:last-child {
+  margin-bottom: 0;
+}
